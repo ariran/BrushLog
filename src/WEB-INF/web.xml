@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app 
+   xmlns="http://java.sun.com/xml/ns/javaee" 
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+   version="2.5"> 
+  <display-name>BrushLog</display-name>
+  
+  <servlet>
+    <servlet-name>brushlog</servlet-name>
+    <servlet-class>brushlog.BrushLogServlet</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>admin</servlet-name>
+    <servlet-class>brushlog.AdminServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>brushlog</servlet-name>
+    <url-pattern>/brushlog</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>admin</servlet-name>
+    <url-pattern>/admin</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>login.jsp</welcome-file>
+  </welcome-file-list>
+</web-app>
