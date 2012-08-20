@@ -1,8 +1,6 @@
-- logout-toiminto
-- kalenterin selaaminen eteen- ja taaksepäin
-- käyttäjätietojen tallennus kantaan / luku kannasta
-- harjaushistorian kirjoitus / luku kannasta
 - kalenterin väritys oikeilla väreillä
 - admin-toiminnot:
    - koko kannan dumppaus selaimeen
    - massatallennus
+   - käyttäjän poisto
+   - salasanan resetointi

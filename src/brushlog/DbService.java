@@ -24,69 +24,154 @@ public class DbService {
 /**
  * addUser
  */
-public static void addUser(Users.User user) {
-
-   if (userExists(user)) {
-      return;
-   }
+public static void addUser(User user) {
 
    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-   
-   Key usersKey = KeyFactory.createKey("Users", "ALL_USERS");
-   Entity users = new Entity("Users", usersKey);
-   datastore.put(users);
 
-   Entity newUser = new Entity("Users.User", usersKey);
+   Key usersKey = KeyFactory.createKey("Users", "ALL_USERS");
+   
+   Entity newUser = new Entity("User", usersKey);
    newUser.setProperty("id", user.id);
    newUser.setProperty("name", user.name);
+   newUser.setProperty("password", user.getPasswordHash());
    datastore.put(newUser);
 }
 
 /**
- * getUsers
+ * updateUser
  */
-public static List<Users.User> getUsers() {
+public static boolean updatePassword(String userid, String pwdClearText) {
+   
+   User currentUser = getUser(userid);
+   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
-   ArrayList<Users.User> newUsers = null;
+   Key key = findUserKey(currentUser.id);
+   if (key != null) {
+      Entity user = new Entity(key);
+      user.setProperty("id", currentUser.id);
+      user.setProperty("name", currentUser.name);
+      user.setProperty("password", User.MD5(pwdClearText));
+      datastore.put(user);
+      return true;
+   }
+   else {
+      System.err.println(
+           "updatePassword -- No key for user (" + currentUser.id + ") found.");
+      return false;
+   }
+}
+
+/**
+ * getAllUsers
+ */
+public static List<User> getAllUsers() {
+
+   ArrayList<User> newUsers = null;
    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 
    Key usersKey = KeyFactory.createKey("Users", "ALL_USERS");
-   Query query = new Query("Users.User", usersKey)
+   Query query = new Query("User", usersKey)
                               .addSort("name", Query.SortDirection.ASCENDING);
    List<Entity> users = datastore.prepare(query)
                                  .asList(FetchOptions.Builder.withDefaults());
 
    if (users != null) {
-      newUsers = new ArrayList<Users.User>();
+      newUsers = new ArrayList<User>();
       for (Entity user : users) {
-         Users.User newUser = new Users.User(
+         User newUser = new User(
             (String) user.getProperty("id"), (String) user.getProperty("name"));
+         newUser.setPasswordHash((String) user.getProperty("password"));
+         newUser.key = user.getKey();
+         
          newUsers.add(newUser);
       }
    }
-   
+
    return newUsers;
 }
 
 /**
  * userExists
  */
-private static boolean userExists(Users.User user) {
+public static boolean userExists(String userid) {
+
+   User user = getUser(userid);
+   return user != null;
+}
+
+/**
+ * getUser
+ */
+public static User getUser(String userid) {
    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-   
-   Query query = new Query("Users.User").setFilter(
-         new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, user.id));
-   
+
+   Query query = new Query("User").setFilter(
+         new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, userid));
+
+   Entity user = null;
+   try {
+      user = datastore.prepare(query).asSingleEntity();
+   }
+   catch (PreparedQuery.TooManyResultsException tmre) {
+      System.err.println(tmre);
+      return null;
+   }
+
+   if (user != null) {
+      User newUser = new User(
+         (String) user.getProperty("id"), (String) user.getProperty("name"));
+      newUser.setPasswordHash((String) user.getProperty("password"));
+      newUser.key = user.getKey();
+      
+      return newUser;
+   }
+   else {
+      return null;
+   }
+}
+
+/**
+ * findUserKey
+ */
+public static Key findUserKey(String userid) {
+   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+   Query query = new Query("User").setFilter(
+         new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, userid));
+
    Entity e = null;
    try {
       e = datastore.prepare(query).asSingleEntity();
    }
    catch (PreparedQuery.TooManyResultsException tmre) {
       System.err.println(tmre);
-      return true;
+      return null;
    }
-   
-   return e != null;
+
+   return e.getKey();
+}
+
+/**
+ * deleteUser
+ */
+public static void deleteUser(String userid) {
+   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+   Query query = new Query("User").setFilter(
+         new Query.FilterPredicate("id", Query.FilterOperator.EQUAL, userid));
+
+   Entity e = null;
+   try {
+      e = datastore.prepare(query).asSingleEntity();
+   }
+   catch (PreparedQuery.TooManyResultsException tmre) {
+      System.err.println(tmre);
+   }
+
+   if (e != null)  {
+      Key key = e.getKey();
+      datastore.delete(key);
+   }
 }
 
 /**
@@ -95,11 +180,9 @@ private static boolean userExists(Users.User user) {
 public static void addRecord(Record record, String userid) {
 
    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-   
-   Key recordsKey = KeyFactory.createKey("Records", userid);
-   Entity records = new Entity("Records", recordsKey);
-   datastore.put(records);
 
+   Key recordsKey = KeyFactory.createKey("Records", userid);
+   
    Entity newRecord = new Entity("Record", recordsKey);
    newRecord.setProperty("dateKey", record.dateKey);
    newRecord.setProperty("value", record.value);
@@ -123,27 +206,29 @@ public static HashMap<String, Record> getAllRecords(String userid) {
       for (Entity rec : recs) {
          String dateKey = (String) rec.getProperty("dateKey");
          Record record = new Record(dateKey, (String) rec.getProperty("value"));
+         record.key = rec.getKey();
          
          records.put(dateKey, record);
       }
    }
-   
+
    return records;
 }
 
 public static boolean importData(String inputData) throws java.io.IOException {
    BufferedReader data = new BufferedReader(new StringReader(inputData));
-   
+
    Users users = new Users();
    String userid = null;
    String row = null;
-   
+
    while ((row = data.readLine()) != null) {
       System.out.println("***importData -- row = " + row);
       if (row.indexOf("*") > 0) {
          StringTokenizer t = new StringTokenizer(row, "*");
          userid = t.nextToken();
-         Users.User user = new Users.User(userid, t.nextToken());
+         User user = new User(userid, t.nextToken());
+         user.setPasswordHash(t.nextToken());
          addUser(user);
       }
       else if (row.indexOf("#") > 0) {
@@ -161,16 +246,25 @@ public static boolean importData(String inputData) throws java.io.IOException {
 public static void purgeDatabase() {
 
    DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-   
-   List<Users.User> allUsers = getUsers();
+
+   List<User> allUsers = getAllUsers();
    if (allUsers != null) {
-      for (Users.User u : allUsers) {
-         datastore.delete(KeyFactory.createKey("Records", u.id));
-         System.out.println("***purgeDatabase -- Records for " + u.id + " removed.");
+      for (User u : allUsers) {
+         HashMap<String, Record> records = getAllRecords(u.id);
+         if (records != null) {
+            for (Record rec : records.values()) {
+               datastore.delete(rec.key);
+            }
+            System.out.println(
+                     "***purgeDatabase -- Records for " + u.name + " removed.");
+         }
+         else {
+            System.out.println(
+                    "***purgeDatabase -- No records found for " + u.name + ".");
+         }
+         datastore.delete(u.key);
+         System.out.println("***purgeDatabase -- User " + u.name + " removed.");
       }
    }
-
-   datastore.delete(KeyFactory.createKey("Users", "ALL_USERS"));
-   System.out.println("***purgeDatabase -- All users removed.");
 }
 }

@@ -1,61 +1,55 @@
 package brushlog;
 
 import java.util.List;
+import com.google.appengine.api.datastore.Key;
 
-public class Users {
+public class Users implements java.io.Serializable {
 
-private List<Users.User> users;
-
-/*
- * addUser
- */
-public Users.User addUser(String userName) {
-   
-   String newUserId = userName.trim().toUpperCase();
-   return addUser(newUserId, userName);
-}
+private List<User> users;
 
 /*
  * addUser
  */
-public Users.User addUser(String userid, String userName) {
+public void addUser(User user) throws UserException {
    
-   Users.User newUser = new Users.User(userid, userName.trim());
-   DbService.addUser(newUser);
-   return newUser;
+   User.Validity valid = user.checkValidity();
+   
+   if (valid != User.Validity.VALID) {
+      throw new UserException(valid);
+   }
+
+   DbService.addUser(user);
 }
+
+/*
+ * addUser. This is used when user data is being imported into database.
+ */
+// public User addUser(String userid, String userName, String pwd) {
+   
+   // User newUser = new User(userid, userName.trim(), pwd);
+   // DbService.addUser(newUser);
+   // return newUser;
+// }
 
 /*
  * getUsers
  */
-public List<Users.User> getUsers() {
+public List<User> getUsers() {
    
-   return DbService.getUsers();
+   return DbService.getAllUsers();
 }
 
 /*
  * getUserById
  */
-public Users.User getUserById(String userid) {
+public User getUserById(String userid) {
    
-   List<Users.User> users = getUsers();
-   for (Users.User user : users) {
+   List<User> users = getUsers();
+   for (User user : users) {
       if (user.id.equals(userid)) {
          return user;
       }
    }
    return null;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-public static class User {
-
-public String id;
-public String name;
-
-public User(String userId, String userName)  {
-   id = userId;
-   name = userName;
-}
 }
 }

@@ -8,9 +8,11 @@
 
 <%@ page import="java.util.List" %>
 <%@ page import="brushlog.Users" %>
+<%@ page import="brushlog.User" %>
 
 <%
-List<Users.User> users = (new Users()).getUsers();
+List<User> users = (new Users()).getUsers();
+String errorText = (String) request.getAttribute("ERROR_TEXT");
 %>
 
 <html>
@@ -21,13 +23,20 @@ List<Users.User> users = (new Users()).getUsers();
 <body>
    <h1>Hammaspesujen kirjaaminen</h1>
    <h3>Sisäänkirjautuminen</h3>
+   <%
+   if (errorText != null) {
+   %>
+   <p><span style="{color:Red}"><strong><%= errorText %></strong></span></p>
+   <%
+   }
+   %>
    <form action="/brushlog" method="post">
       <p>Valitse käyttäjänimi:</p>
       <select name="username">
       <option value=""></option>
          <%
          if (users != null) {
-            for (Users.User user : users) {
+            for (User user : users) {
                out.println(
                   "<option name='userid' value='" + user.id + "'>" + user.name + "</option>");
             }
@@ -36,6 +45,8 @@ List<Users.User> users = (new Users()).getUsers();
       </select>
       <p>Muu käyttäjänimi:</p>
       <input type="text" name="otherusername" />
+      <p>Salasana:</p>
+      <input type="password" name="password" />
       <br /><br />
       <input type="submit" value="Kirjaudu" />
    </form>

@@ -1,11 +1,13 @@
 package brushlog;
 
 import java.util.Calendar;
+import com.google.appengine.api.datastore.Key;
 
-public class Record {
+public class Record implements java.io.Serializable {
 
 public String dateKey = null;
 public String value = null;
+public Key key = null;
 
 public Record(String key, String val) {
    dateKey = key;

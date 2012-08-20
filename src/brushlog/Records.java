@@ -3,7 +3,7 @@ package brushlog;
 import java.util.Calendar;
 import java.util.HashMap;
 
-public class Records {
+public class Records implements java.io.Serializable {
 
 private String userid;
 private HashMap<String, Record> allRecords;

@@ -44,7 +44,8 @@ public String toHtml() {
       boolean inFuture = dayInFuture(days[i]);
       String color = getColor(days[i], inFuture);
       out.append("<td id=\"" + days[i] + "\" ")
-         .append("style=\"{background-color:" + color + "}\"");
+         .append("style=\"{background-color:" + color + "}\" ")
+         .append("bgcolor=\"" + color + "\"");
       if (!inFuture) {
          out.append(" onclick=\"submitForm(this.id)\"");
       }
@@ -97,23 +98,22 @@ private int getNextDay() {
 private String getColor(String day, boolean dayInFuture) {
 
    if (day.trim().length() == 0 || dayInFuture) {
-      return "White";
+      return "#FFFFFF"; // "White";
    }
 
    String recordValue = records.getRecordValue(originalCalendar, day);
-   // System.out.println("***getColor - recordValue: " + recordValue);
+
    int valueAsInt = 0;
    if (recordValue != null) {
       valueAsInt = Integer.parseInt(recordValue);
    }
-   // System.out.println("***getColor - valueAsInt: " + valueAsInt);
    switch (valueAsInt) {
    case 1:
-      return "Yellow";
+      return "#FFFF00"; // "Yellow";
    case 2:
-      return "Green";
+      return "#32CD32"; // "LimeGreen";
    default:
-      return "Red";
+      return "#FF0000"; // "Red";
    }
 }
 
