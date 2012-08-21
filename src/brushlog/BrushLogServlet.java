@@ -85,17 +85,17 @@ public void performTask(HttpServletRequest req, HttpServletResponse resp)
       if ("newEntryAction".equals(action)) {
          String dayNumber = req.getParameter("DAYNUMBER");
          records.updateRecord(calendar, dayNumber);
-         req.setAttribute("CALBEAN", new CalendarUIBean(calendar, records));
+         session.setAttribute("CALUIBEAN", new CalendarUIBean(calendar, records));
          responsePage = "calendar.jsp";
       }
       else if ("moveBackwards".equals(action)) {
          calendar.add(Calendar.MONTH, -1);
-         req.setAttribute("CALBEAN", new CalendarUIBean(calendar, records));
+         session.setAttribute("CALUIBEAN", new CalendarUIBean(calendar, records));
          responsePage = "calendar.jsp";
       }
       else if ("moveForwards".equals(action)) {
          calendar.add(Calendar.MONTH, 1);
-         req.setAttribute("CALBEAN", new CalendarUIBean(calendar, records));
+         session.setAttribute("CALUIBEAN", new CalendarUIBean(calendar, records));
          responsePage = "calendar.jsp";
       }
       else if ("changePassword".equals(action)) {
@@ -137,15 +137,13 @@ public void performTask(HttpServletRequest req, HttpServletResponse resp)
          return;
       }
       else { // "cancelPasswordChange" & all others
-         req.setAttribute("CALBEAN", new CalendarUIBean(calendar, records));
+         session.setAttribute("CALUIBEAN", new CalendarUIBean(calendar, records));
          responsePage = "calendar.jsp";
       }
    }
 
    // Forward to response page.
 
-   User u = (User) session.getAttribute("USER");
-   req.setAttribute("USERNAME", u.name);
    try {
       req.getRequestDispatcher(responsePage).forward(req, resp);
    }
@@ -203,10 +201,10 @@ private Records getRecordsBean(HttpSession session, User currentUser) {
  */
 private Calendar getCalendarBean(HttpSession session) {
 
-   Calendar calendar = (Calendar) session.getAttribute("CALBEAN");
+   Calendar calendar = (Calendar) session.getAttribute("CALENDAR");
    if (calendar == null) {
       calendar = Calendar.getInstance();
-      session.setAttribute("CALBEAN", calendar);
+      session.setAttribute("CALENDAR", calendar);
    }
    return calendar;
 }

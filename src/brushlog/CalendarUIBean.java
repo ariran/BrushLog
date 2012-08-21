@@ -25,6 +25,7 @@ public CalendarUIBean(Calendar cal, Records recs) {
 }
 
 public String toHtml() {
+
    StringBuffer out = new StringBuffer();
    out.append("<table>");
    out.append("<tr><th colspan=\"7\">"  + monthYear + "</th></tr>");

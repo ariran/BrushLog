@@ -12,6 +12,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>chat</servlet-name>
+    <servlet-class>brushlog.ChatServlet</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>admin</servlet-name>
     <servlet-class>brushlog.AdminServlet</servlet-class>
   </servlet>
@@ -19,6 +24,11 @@
   <servlet-mapping>
     <servlet-name>brushlog</servlet-name>
     <url-pattern>/brushlog</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>chat</servlet-name>
+    <url-pattern>/chat</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

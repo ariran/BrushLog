@@ -3,6 +3,7 @@ package brushlog;
 import java.io.BufferedReader;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -266,5 +267,49 @@ public static void purgeDatabase() {
          System.out.println("***purgeDatabase -- User " + u.name + " removed.");
       }
    }
+}
+
+/**
+ * insertChatItem
+ */
+public static void insertChatItem(ChatItem item) {
+
+   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+   Key chatsKey = KeyFactory.createKey("ChatItem", "ALL_CHAT_ITEMS");
+   
+   Entity newChat = new Entity("ChatItem", chatsKey);
+   newChat.setProperty("user", item.user);
+   newChat.setProperty("timestamp", item.timestamp.getTimeInMillis());
+   newChat.setProperty("text", item.text);
+   datastore.put(newChat);
+}
+
+/*
+ * getAllChatItems
+ */
+public static ChatItem[] getAllChatItems() {
+
+   DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+   Key chatsKey = KeyFactory.createKey("ChatItem", "ALL_CHAT_ITEMS");
+   Query query = new Query("ChatItem", chatsKey);
+   List<Entity> recs = datastore.prepare(query)
+                                 .asList(FetchOptions.Builder.withDefaults());
+
+   ArrayList<ChatItem> records = new ArrayList<ChatItem>();
+   if (recs != null) {
+      for (Entity rec : recs) {
+         Calendar timestamp = Calendar.getInstance();
+         timestamp.setTimeInMillis((Long) rec.getProperty("timestamp"));
+         ChatItem chat = new ChatItem(
+            (String) rec.getProperty("user"),
+            (Calendar) timestamp,
+            (String) rec.getProperty("text"));
+         records.add(chat);
+      }
+   }
+
+   return (ChatItem[]) records.toArray(new ChatItem[0]);
 }
 }
